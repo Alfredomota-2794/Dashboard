@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Control — BGI Tools</title>
+  <link rel="icon" href="/favicon.png" type="image/png">
+  <meta name="theme-color" content="#05080f">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #05080f;
+      color: #f1f5f9;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+    body.loading { visibility: hidden; }
+
+    /* Topbar */
+    .topbar {
+      background: rgba(5,8,15,0.75);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-bottom: 1px solid rgba(91,163,204,0.12);
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 1px 0 rgba(91,163,204,0.05);
+    }
+    .topbar-inner {
+      max-width: 1200px; margin: 0 auto;
+      padding: 14px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 16px; }
+    .topbar-left img { height: 32px; width: auto; }
+    .admin-badge {
+      background: rgba(19,74,110,0.25);
+      border: 1px solid rgba(91,163,204,0.3);
+      color: #5ba3cc;
+      font-size: 11px; font-weight: 700;
+      padding: 4px 10px; border-radius: 20px;
+      text-transform: uppercase; letter-spacing: 0.06em;
+    }
+    .topbar-right { display: flex; align-items: center; gap: 14px; }
+    .user-info { text-align: right; }
+    .user-name { font-size: 13px; font-weight: 600; }
+    .user-role { font-size: 11px; color: rgba(255,255,255,0.4); }
+    .btn-logout {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.5);
+      padding: 7px 14px; border-radius: 8px;
+      font-size: 12px; font-weight: 600; cursor: pointer;
+      transition: background 0.2s, border-color 0.2s, color 0.2s;
+    }
+    .btn-logout:hover { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.3); color: #f87171; }
+
+    /* Main layout */
+    .main { max-width: 1200px; margin: 0 auto; padding: 32px 24px 80px; }
+
+    /* Stats */
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+      margin-bottom: 16px;
+    }
+    .stat-card {
+      background: rgba(255,255,255,0.035);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 16px; padding: 22px 24px;
+      position: relative; overflow: hidden;
+      backdrop-filter: blur(8px);
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .stat-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, rgba(19,74,110,0.6), rgba(91,163,204,0.8), rgba(19,74,110,0.6));
+    }
+    .stat-card:hover { border-color: rgba(91,163,204,0.2); box-shadow: 0 8px 32px rgba(19,74,110,0.2); }
+    .stat-label { font-size: 11px; color: rgba(255,255,255,0.35); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; }
+    .stat-value { font-size: 32px; font-weight: 900; letter-spacing: -0.02em; }
+    .stat-sub { font-size: 12px; color: rgba(255,255,255,0.3); margin-top: 4px; }
+
+    /* Credits banner */
+    .credits-banner {
+      background: rgba(19,74,110,0.12);
+      border: 1px solid rgba(91,163,204,0.2);
+      border-radius: 14px; padding: 16px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 28px; flex-wrap: wrap; gap: 12px;
+    }
+    .credits-banner-left { display: flex; align-items: center; gap: 14px; }
+    .credits-icon { font-size: 28px; }
+    .credits-info-title { font-size: 13px; font-weight: 700; color: #5ba3cc; margin-bottom: 2px; }
+    .credits-info-sub { font-size: 12px; color: rgba(255,255,255,0.4); }
+    .credits-stats { display: flex; gap: 24px; }
+    .credits-stat { text-align: center; }
+    .credits-stat-val { font-size: 18px; font-weight: 800; color: white; }
+    .credits-stat-label { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 2px; }
+    .btn-recharge {
+      background: linear-gradient(135deg, #134A6E, #1a6090);
+      border: none; color: white;
+      padding: 10px 20px; border-radius: 8px;
+      font-size: 13px; font-weight: 700; cursor: pointer;
+      transition: all 0.2s; text-decoration: none;
+      display: inline-flex; align-items: center; gap: 6px;
+      white-space: nowrap;
+    }
+    .btn-recharge { transition: transform 0.2s, box-shadow 0.2s; }
+    .btn-recharge:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(19,74,110,0.4); }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 4px; margin-bottom: 28px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .tab-btn {
+      padding: 12px 20px; border: none; background: transparent;
+      color: rgba(255,255,255,0.4); font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: color 0.2s, border-color 0.2s; border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+    }
+    .tab-btn:hover { color: rgba(255,255,255,0.7); }
+    .tab-btn.active { color: white; border-bottom-color: #5ba3cc; }
+
+    /* Section header */
+    .section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .section-title { font-size: 18px; font-weight: 700; }
+    .btn-new {
+      background: linear-gradient(135deg, #134A6E, #1a6090);
+      border: none; color: white;
+      padding: 10px 20px; border-radius: 8px;
+      font-size: 13px; font-weight: 700; cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn-new:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(19,74,110,0.4); }
+
+    /* Table */
+    .table-wrap {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px; overflow: hidden;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      background: rgba(255,255,255,0.04);
+      padding: 12px 20px; text-align: left;
+      font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.4);
+      text-transform: uppercase; letter-spacing: 0.06em;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    tbody td {
+      padding: 16px 20px; font-size: 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: rgba(255,255,255,0.02); }
+
+    .user-cell { display: flex; align-items: center; gap: 12px; }
+    .user-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: linear-gradient(135deg, #134A6E, #1a6090);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 800; flex-shrink: 0;
+    }
+    .user-cell-name { font-weight: 600; font-size: 14px; }
+    .user-cell-email { font-size: 12px; color: rgba(255,255,255,0.4); }
+
+    .badge {
+      display: inline-block; padding: 3px 10px; border-radius: 20px;
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+    }
+    .badge-active { background: rgba(16,185,129,0.12); color: #10b981; }
+    .badge-inactive { background: rgba(239,68,68,0.12); color: #f87171; }
+    .badge-admin { background: rgba(19,74,110,0.2); color: #5ba3cc; }
+    .badge-student { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5); }
+
+    .tools-list { display: flex; gap: 6px; flex-wrap: wrap; }
+    .tool-pill {
+      background: rgba(19,74,110,0.15); border: 1px solid rgba(19,74,110,0.3);
+      color: #5ba3cc; font-size: 11px; font-weight: 600;
+      padding: 3px 8px; border-radius: 6px;
+    }
+
+    .actions { display: flex; gap: 8px; }
+    .btn-action {
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.6); padding: 6px 12px; border-radius: 6px;
+      font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.2s, border-color 0.2s, color 0.2s;
+    }
+    .btn-action:hover { background: rgba(255,255,255,0.1); color: white; }
+    .btn-action.danger:hover { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.3); color: #f87171; }
+
+    .empty-state {
+      text-align: center; padding: 60px 20px;
+      color: rgba(255,255,255,0.3); font-size: 14px;
+    }
+    .empty-state span { font-size: 32px; display: block; margin-bottom: 12px; }
+
+    /* Tab content */
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Usage table */
+    .usage-summary {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 24px;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.65);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      display: none; align-items: center; justify-content: center;
+      z-index: 1000; padding: 20px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-overlay.open .modal {
+      animation: modalIn 0.35s cubic-bezier(0.22,1,0.36,1) both;
+    }
+    @keyframes modalIn {
+      from { opacity: 0; transform: translateY(20px) scale(0.96); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .modal {
+      background: rgba(10,18,35,0.95);
+      border: 1px solid rgba(91,163,204,0.15);
+      border-radius: 22px; padding: 34px; width: 100%; max-width: 480px;
+      max-height: 90vh; overflow-y: auto;
+      box-shadow: 0 40px 100px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04);
+      position: relative;
+    }
+    .modal::before {
+      content: '';
+      position: absolute; top: 0; left: 15%; right: 15%; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(91,163,204,0.4), transparent);
+    }
+    .modal-title { font-size: 18px; font-weight: 800; margin-bottom: 24px; }
+    .modal-group { margin-bottom: 18px; }
+    .modal-group label { display: block; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.6); margin-bottom: 8px; }
+    .modal-group input, .modal-group select {
+      width: 100%; padding: 12px 14px;
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 12px; color: white; font-size: 14px;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s; font-family: inherit;
+    }
+    .modal-group input:focus, .modal-group select:focus {
+      border-color: rgba(91,163,204,0.45);
+      background: rgba(19,74,110,0.1);
+      box-shadow: 0 0 0 3px rgba(91,163,204,0.08);
+      outline: none;
+    }
+    .modal-group input::placeholder { color: rgba(255,255,255,0.2); }
+    .password-wrap { position: relative; }
+    .password-wrap input { padding-right: 44px; }
+    .btn-eye {
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer;
+      color: rgba(255,255,255,0.35); font-size: 18px; padding: 4px;
+      transition: color 0.2s; line-height: 1;
+    }
+    .btn-eye:hover { color: rgba(255,255,255,0.7); }
+    .modal-group select option { background: #0d1627; }
+    .modal-hint { font-size: 12px; color: rgba(255,255,255,0.3); margin-top: 6px; }
+    .checkbox-group { display: flex; flex-direction: column; gap: 10px; }
+    .checkbox-item { display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 14px; }
+    .checkbox-item input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: #134A6E; }
+    .toggle-row { display: flex; align-items: center; justify-content: space-between; }
+    .toggle-label { font-size: 14px; }
+    .toggle {
+      width: 44px; height: 24px; background: rgba(255,255,255,0.1);
+      border: none; border-radius: 12px; cursor: pointer; position: relative;
+      transition: background 0.2s;
+    }
+    .toggle.on { background: #10b981; }
+    .toggle::after {
+      content: ''; position: absolute; width: 18px; height: 18px;
+      background: white; border-radius: 50%; top: 3px; left: 3px;
+      transition: transform 0.2s;
+    }
+    .toggle.on::after { transform: translateX(20px); }
+    .modal-actions { display: flex; gap: 10px; margin-top: 24px; }
+    .btn-modal-save {
+      flex: 1; padding: 13px;
+      background: linear-gradient(135deg, #134A6E, #1a6090);
+      border: none; border-radius: 10px; color: white;
+      font-size: 14px; font-weight: 700; cursor: pointer; transition: opacity 0.2s;
+    }
+    .btn-modal-save:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-modal-cancel {
+      padding: 13px 20px;
+      background: transparent; border: 1.5px solid rgba(255,255,255,0.1);
+      border-radius: 10px; color: rgba(255,255,255,0.5);
+      font-size: 14px; font-weight: 600; cursor: pointer; transition: border-color 0.2s, color 0.2s;
+    }
+    .btn-modal-cancel:hover { border-color: rgba(255,255,255,0.3); color: white; }
+    .modal-error {
+      background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);
+      color: #f87171; padding: 10px 14px; border-radius: 8px;
+      font-size: 13px; margin-top: 12px; display: none;
+    }
+    .modal-error.show { display: block; }
+
+    /* Loading overlay */
+    #page-loading {
+      position: fixed; inset: 0; background: #05080f;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9999;
+    }
+    .page-spinner {
+      width: 36px; height: 36px; border: 3px solid rgba(255,255,255,0.1);
+      border-top-color: #5ba3cc; border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    :focus-visible { outline: 2px solid #5ba3cc; outline-offset: 3px; border-radius: 4px; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+    }
+
+    @media (max-width: 768px) {
+      .stats-grid { grid-template-columns: 1fr; }
+      .topbar-inner { padding: 12px 16px; }
+      .main { padding: 20px 16px 60px; }
+      .usage-summary { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="page-loading"><div class="page-spinner"></div></div>
+
+<!-- Orbes de fondo -->
+<div style="position:fixed;width:700px;height:700px;border-radius:50%;background:radial-gradient(circle,rgba(19,74,110,0.35) 0%,transparent 65%);top:-300px;left:-200px;filter:blur(90px);pointer-events:none;z-index:0;animation:orbA 14s ease-in-out infinite;" aria-hidden="true"></div>
+<div style="position:fixed;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(91,163,204,0.08) 0%,transparent 65%);bottom:-150px;right:-100px;filter:blur(80px);pointer-events:none;z-index:0;animation:orbA 18s ease-in-out infinite reverse;" aria-hidden="true"></div>
+<style>
+  @keyframes orbA { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(30px,-40px) scale(1.06)} }
+  .topbar,.main { position:relative; z-index:1; }
+</style>
+
+<!-- Topbar -->
+<nav class="topbar">
+  <div class="topbar-inner">
+    <div class="topbar-left">
+      <img src="/logo.png" alt="BGI">
+      <span class="admin-badge">Panel de Control</span>
+    </div>
+    <div class="topbar-right">
+      <div class="user-info">
+        <div class="user-name" id="admin-name">—</div>
+        <div class="user-role" id="admin-role">—</div>
+      </div>
+      <a href="/" style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.55);padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;transition:all 0.2s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='rgba(255,255,255,0.55)'">🛠️ Ver herramientas</a>
+      <button class="btn-logout" onclick="bgiSignOut()">Cerrar sesión</button>
+    </div>
+  </div>
+</nav>
+
+<div class="main">
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Alumnos activos</div>
+      <div class="stat-value" id="stat-students">—</div>
+      <div class="stat-sub" id="stat-students-sub">Total registrados</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Herramientas disponibles</div>
+      <div class="stat-value" id="stat-tools">1</div>
+      <div class="stat-sub">de 6 planeadas</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Equipo BGI</div>
+      <div class="stat-value" id="stat-team">—</div>
+      <div class="stat-sub" id="stat-team-sub">Miembros con acceso</div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="alumnos">Alumnos</button>
+    <button class="tab-btn" data-tab="equipo" id="btn-tab-equipo">Equipo BGI</button>
+    <button class="tab-btn" data-tab="uso">📊 Analíticas de Uso</button>
+  </div>
+
+  <!-- Tab: Alumnos -->
+  <div class="tab-content active" id="tab-alumnos">
+    <div class="section-header">
+      <div class="section-title">Alumnos</div>
+      <button class="btn-new" onclick="openModal('student')">+ Nuevo alumno</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Alumno</th>
+            <th>Estado</th>
+            <th>Herramientas</th>
+            <th>Créditos usados</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="students-tbody">
+          <tr><td colspan="5"><div class="empty-state"><span>⏳</span>Cargando alumnos...</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Tab: Equipo BGI -->
+  <div class="tab-content" id="tab-equipo">
+    <div class="section-header">
+      <div class="section-title">Equipo BGI</div>
+      <button class="btn-new" id="btn-new-team" onclick="openModal('team')">+ Nuevo miembro</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Miembro</th>
+            <th>Rol</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="team-tbody">
+          <tr><td colspan="4"><div class="empty-state"><span>⏳</span>Cargando equipo...</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Tab: Analíticas de Uso -->
+  <div class="tab-content" id="tab-uso">
+    <div class="section-header">
+      <div class="section-title">Analíticas de Uso</div>
+    </div>
+
+    <!-- Stats de tokens -->
+    <div class="stats-grid" style="margin-bottom:16px;">
+      <div class="stat-card">
+        <div class="stat-label">Tokens este mes</div>
+        <div class="stat-value" id="stat-month">—</div>
+        <div class="stat-sub" id="stat-month-cost">Calculando...</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Tokens acumulados</div>
+        <div class="stat-value" id="stat-total">—</div>
+        <div class="stat-sub" id="stat-total-cost">Desde el inicio</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Generaciones este mes</div>
+        <div class="stat-value" id="stat-gen-month">—</div>
+        <div class="stat-sub">Historias generadas</div>
+      </div>
+    </div>
+
+    <!-- Banner créditos Claude -->
+    <div class="credits-banner" style="margin-bottom:28px;">
+      <div class="credits-banner-left">
+        <div class="credits-icon">⚡</div>
+        <div>
+          <div class="credits-info-title">Créditos de Claude (IA)</div>
+          <div class="credits-info-sub">Costo estimado con tarifas de Claude Haiku · $0.80/M tokens entrada · $4/M tokens salida</div>
+        </div>
+      </div>
+      <a href="https://platform.claude.com/settings/billing" target="_blank" class="btn-recharge">
+        💳 Ver saldo y recargar →
+      </a>
+    </div>
+
+    <!-- Ranking de alumnos -->
+    <div style="margin-bottom:24px;">
+      <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:14px;">Top alumnos por uso</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Alumno</th>
+              <th style="text-align:center;">Total historias</th>
+              <th style="text-align:center;">CTA Directo</th>
+              <th style="text-align:center;">Recurso de Valor</th>
+              <th>Costo estimado</th>
+            </tr>
+          </thead>
+          <tbody id="ranking-tbody">
+            <tr><td colspan="5"><div class="empty-state"><span>⏳</span>Cargando...</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Historial de uso -->
+    <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:14px;">Historial reciente</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Usuario</th>
+            <th>Herramienta</th>
+            <th>Tokens</th>
+            <th>Costo est.</th>
+            <th>Fecha</th>
+          </tr>
+        </thead>
+        <tbody id="usage-tbody">
+          <tr><td colspan="5"><div class="empty-state"><span>⏳</span>Cargando registros...</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal agregar/editar usuario -->
+<div class="modal-overlay" id="user-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">Nuevo alumno</div>
+
+    <div class="modal-group">
+      <label for="m-name">Nombre completo *</label>
+      <input type="text" id="m-name" placeholder="Ej: María García">
+    </div>
+    <div class="modal-group">
+      <label for="m-email">Correo electrónico *</label>
+      <input type="email" id="m-email" placeholder="alumno@correo.com">
+    </div>
+    <div class="modal-group" id="m-password-group">
+      <label for="m-password" id="m-password-label">Contraseña *</label>
+      <div class="password-wrap">
+        <input type="password" id="m-password" placeholder="Mínimo 8 caracteres">
+        <button type="button" class="btn-eye" id="btn-eye" aria-label="Mostrar contraseña" onclick="togglePasswordVisibility()">👁️</button>
+      </div>
+      <div class="modal-hint" id="m-password-hint">Si editas y dejas vacío, no se cambia la contraseña.</div>
+    </div>
+    <div class="modal-group" id="m-role-group" style="display:none;">
+      <label for="m-role">Rol</label>
+      <select id="m-role">
+        <option value="student">Alumno</option>
+        <option value="bgi_team">Equipo BGI</option>
+        <option value="super_admin">Super Admin</option>
+      </select>
+    </div>
+    <div class="modal-group" id="m-tools-group">
+      <label>Herramientas habilitadas</label>
+      <div class="checkbox-group">
+        <label class="checkbox-item">
+          <input type="checkbox" id="tool-generador" value="generador_historias" checked>
+          Generador de Historias de Instagram
+        </label>
+      </div>
+    </div>
+    <div class="modal-group" id="m-active-group" style="display:none;">
+      <div class="toggle-row">
+        <span class="toggle-label" id="active-toggle-label">Cuenta activa</span>
+        <button type="button" class="toggle on" id="m-active-toggle" aria-labelledby="active-toggle-label" aria-pressed="true" onclick="toggleActive()"></button>
+      </div>
+    </div>
+
+    <div class="modal-error" id="modal-error" role="alert" aria-live="polite"></div>
+    <div class="modal-actions">
+      <button class="btn-modal-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="btn-modal-save" id="btn-modal-save" onclick="saveUser()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="/js/supabase-client.js"></script>
+<script src="/js/auth.js"></script>
+<script>
+  const TOOLS = [
+    { id: 'generador_historias', label: 'Generador de Historias de Instagram' }
+  ];
+
+  let currentUser = null;
+  let allUsers = [];
+  let editingUserId = null;
+  let editingType = null;
+  let isActiveState = true;
+
+  // ── Inicialización ─────────────────────────────────────
+  (async () => {
+    const auth = await bgiRequireAuth(['super_admin', 'bgi_team']);
+    if (!auth) return;
+
+    currentUser = auth;
+    document.getElementById('admin-name').textContent = auth.profile.name || auth.profile.email;
+
+    const roleLabels = { super_admin: 'Super Admin', bgi_team: 'Equipo BGI' };
+    document.getElementById('admin-role').textContent = roleLabels[auth.profile.role] || auth.profile.role;
+
+    // Solo super_admin puede gestionar equipo
+    if (auth.profile.role !== 'super_admin') {
+      document.getElementById('btn-tab-equipo').style.opacity = '0.4';
+      document.getElementById('btn-tab-equipo').style.pointerEvents = 'none';
+      document.getElementById('btn-new-team').style.display = 'none';
+    }
+
+    document.getElementById('page-loading').style.display = 'none';
+
+    await Promise.all([loadUsers(), loadUsage()]);
+    renderRanking(allUsers);
+  })();
+
+  // ── Tabs ───────────────────────────────────────────────
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  // ── Cargar usuarios ────────────────────────────────────
+  async function loadUsers() {
+    const token = await bgiGetToken();
+    const res = await fetch('/api/admin-users?action=list', {
+      headers: { Authorization: 'Bearer ' + token }
+    });
+    const data = await res.json();
+    if (!res.ok) return;
+
+    allUsers = data.users || [];
+    renderStudents(allUsers.filter(u => u.role === 'student'));
+    renderTeam(allUsers.filter(u => ['super_admin', 'bgi_team'].includes(u.role)));
+    updateStats(allUsers);
+  }
+
+  // Costo estimado: Claude Haiku ~60% input / 40% output promedio
+  // Input: $0.80/M tokens, Output: $4/M tokens
+  function estimateCost(tokens) {
+    const input = tokens * 0.6;
+    const output = tokens * 0.4;
+    const usd = (input * 0.80 / 1_000_000) + (output * 4.0 / 1_000_000);
+    return usd;
+  }
+
+  function formatCost(usd) {
+    if (usd < 0.01) return '< $0.01 USD';
+    return '$' + usd.toFixed(3) + ' USD';
+  }
+
+  function updateStats(users) {
+    let studentCount = 0, activeCount = 0, teamCount = 0, totalTokens = 0;
+    for (const u of users) {
+      totalTokens += u.credits_used || 0;
+      if (u.role === 'student') {
+        studentCount++;
+        if (u.is_active) activeCount++;
+      } else if (u.role === 'super_admin' || u.role === 'bgi_team') {
+        teamCount++;
+      }
+    }
+
+    document.getElementById('stat-students').textContent = activeCount;
+    document.getElementById('stat-students-sub').textContent = studentCount + ' registrados en total';
+    document.getElementById('stat-team').textContent = teamCount;
+    document.getElementById('stat-total').textContent = totalTokens.toLocaleString();
+    document.getElementById('stat-total-cost').textContent = 'Costo est. ' + formatCost(estimateCost(totalTokens));
+  }
+
+  function renderRanking(users) {
+    const stats = window._userStats || {};
+    const students = users
+      .filter(u => u.role === 'student')
+      .map(u => ({
+        ...u,
+        _cta: stats[u.id]?.cta || 0,
+        _recurso: stats[u.id]?.recurso || 0,
+        _total: (stats[u.id]?.cta || 0) + (stats[u.id]?.recurso || 0)
+      }))
+      .filter(u => u._total > 0)
+      .sort((a, b) => b._total - a._total)
+      .slice(0, 10);
+
+    const tbody = document.getElementById('ranking-tbody');
+    if (!students.length) {
+      tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><span>📊</span>Sin uso registrado aún.</div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = students.map((u, i) => {
+      const tokens = u.credits_used || 0;
+      return `<tr>
+        <td style="color:rgba(255,255,255,0.4);font-weight:700;">${i + 1}</td>
+        <td>
+          <div class="user-cell">
+            <div class="user-avatar">${(u.name || u.email).charAt(0).toUpperCase()}</div>
+            <div>
+              <div class="user-cell-name">${esc(u.name || '—')}</div>
+              <div class="user-cell-email">${esc(u.email)}</div>
+            </div>
+          </div>
+        </td>
+        <td style="text-align:center;"><strong>${u._total}</strong></td>
+        <td style="text-align:center;color:#10b981;font-weight:600;">${u._cta}</td>
+        <td style="text-align:center;color:#5ba3cc;font-weight:600;">${u._recurso}</td>
+        <td style="color:rgba(255,255,255,0.5);">${formatCost(estimateCost(tokens))}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  function renderStudents(students) {
+    const tbody = document.getElementById('students-tbody');
+    if (!students.length) {
+      tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><span>👥</span>No hay alumnos registrados aún.</div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = students.map(u => `
+      <tr>
+        <td>
+          <div class="user-cell">
+            <div class="user-avatar">${(u.name || u.email).charAt(0).toUpperCase()}</div>
+            <div>
+              <div class="user-cell-name">${esc(u.name || '—')}</div>
+              <div class="user-cell-email">${esc(u.email)}</div>
+            </div>
+          </div>
+        </td>
+        <td><span class="badge ${u.is_active ? 'badge-active' : 'badge-inactive'}">${u.is_active ? 'Activo' : 'Inactivo'}</span></td>
+        <td>
+          <div class="tools-list">
+            ${(u.enabled_tools || []).map(t => `<span class="tool-pill">${toolName(t)}</span>`).join('') || '<span style="color:rgba(255,255,255,0.3);font-size:12px;">Ninguna</span>'}
+          </div>
+        </td>
+        <td>${(u.credits_used || 0).toLocaleString()} tokens</td>
+        <td>
+          <div class="actions">
+            <button class="btn-action" onclick="editUser('${u.id}')">✏️ Editar</button>
+            <button class="btn-action danger" onclick="deleteUser('${u.id}', '${esc(u.name || u.email)}')">🗑️</button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function renderTeam(team) {
+    const tbody = document.getElementById('team-tbody');
+    if (!team.length) {
+      tbody.innerHTML = `<tr><td colspan="4"><div class="empty-state"><span>👥</span>No hay miembros del equipo registrados.</div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = team.map(u => `
+      <tr>
+        <td>
+          <div class="user-cell">
+            <div class="user-avatar">${(u.name || u.email).charAt(0).toUpperCase()}</div>
+            <div>
+              <div class="user-cell-name">${esc(u.name || '—')}</div>
+              <div class="user-cell-email">${esc(u.email)}</div>
+            </div>
+          </div>
+        </td>
+        <td><span class="badge ${u.role === 'super_admin' ? 'badge-admin' : 'badge-student'}">${u.role === 'super_admin' ? 'Super Admin' : 'Equipo BGI'}</span></td>
+        <td><span class="badge ${u.is_active ? 'badge-active' : 'badge-inactive'}">${u.is_active ? 'Activo' : 'Inactivo'}</span></td>
+        <td>
+          <div class="actions">
+            <button class="btn-action" onclick="editUser('${u.id}')">✏️ Editar</button>
+            ${u.id !== currentUser.profile.id ? `<button class="btn-action danger" onclick="deleteUser('${u.id}', '${esc(u.name || u.email)}')">🗑️</button>` : ''}
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  // ── Cargar uso ─────────────────────────────────────────
+  async function loadUsage() {
+    const token = await bgiGetToken();
+    const res = await fetch('/api/admin-users?action=usage', {
+      headers: { Authorization: 'Bearer ' + token }
+    });
+    const data = await res.json();
+    if (!res.ok) return;
+
+    const tokensMonth = data.tokensThisMonth || 0;
+    document.getElementById('stat-month').textContent = tokensMonth.toLocaleString();
+    document.getElementById('stat-month-cost').textContent = 'Costo est. ' + formatCost(estimateCost(tokensMonth));
+    document.getElementById('stat-gen-month').textContent = (data.genThisMonth || 0).toLocaleString();
+
+    // Guardar userStats para el ranking
+    window._userStats = data.userStats || {};
+    if (allUsers.length) renderRanking(allUsers);
+
+    const tbody = document.getElementById('usage-tbody');
+    if (!data.logs || !data.logs.length) {
+      tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><span>📊</span>Sin registros de uso aún.</div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = data.logs.map(l => `
+      <tr>
+        <td>${esc(l.user_email || '—')}</td>
+        <td>${toolName(l.tool)}</td>
+        <td>${l.tokens_used.toLocaleString()}</td>
+        <td style="color:#5ba3cc;">${formatCost(estimateCost(l.tokens_used))}</td>
+        <td>${new Date(l.created_at).toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' })}</td>
+      </tr>
+    `).join('');
+  }
+
+  // ── Modal ──────────────────────────────────────────────
+  function openModal(type) {
+    editingUserId = null;
+    editingType = type;
+    isActiveState = true;
+
+    document.getElementById('modal-title').textContent = type === 'student' ? 'Nuevo alumno' : 'Nuevo miembro del equipo';
+    document.getElementById('m-name').value = '';
+    document.getElementById('m-email').value = '';
+    document.getElementById('m-password').value = '';
+    document.getElementById('m-password-label').textContent = 'Contraseña *';
+    document.getElementById('m-password-hint').style.display = 'none';
+    document.getElementById('m-active-group').style.display = 'none';
+    document.getElementById('modal-error').classList.remove('show');
+
+    // Mostrar/ocultar campos según tipo
+    document.getElementById('m-role-group').style.display = type === 'team' ? 'block' : 'none';
+    document.getElementById('m-tools-group').style.display = type === 'student' ? 'block' : 'none';
+
+    // Reset checkboxes
+    document.querySelectorAll('#m-tools-group input[type="checkbox"]').forEach(cb => cb.checked = true);
+
+    document.getElementById('user-modal').classList.add('open');
+  }
+
+  function editUser(userId) {
+    const u = allUsers.find(x => x.id === userId);
+    if (!u) return;
+
+    editingUserId = userId;
+    editingType = ['super_admin', 'bgi_team'].includes(u.role) ? 'team' : 'student';
+    isActiveState = u.is_active;
+
+    document.getElementById('modal-title').textContent = 'Editar ' + (editingType === 'student' ? 'alumno' : 'miembro');
+    document.getElementById('m-name').value = u.name || '';
+    document.getElementById('m-email').value = u.email || '';
+    document.getElementById('m-password').value = '';
+    document.getElementById('m-password-label').textContent = 'Nueva contraseña';
+    document.getElementById('m-password-hint').style.display = 'block';
+    document.getElementById('m-active-group').style.display = 'block';
+    document.getElementById('modal-error').classList.remove('show');
+
+    const toggle = document.getElementById('m-active-toggle');
+    toggle.className = 'toggle' + (isActiveState ? ' on' : '');
+    toggle.setAttribute('aria-pressed', isActiveState);
+
+    document.getElementById('m-role-group').style.display = editingType === 'team' ? 'block' : 'none';
+    if (editingType === 'team') {
+      document.getElementById('m-role').value = u.role;
+    }
+
+    document.getElementById('m-tools-group').style.display = editingType === 'student' ? 'block' : 'none';
+    if (editingType === 'student') {
+      document.querySelectorAll('#m-tools-group input[type="checkbox"]').forEach(cb => {
+        cb.checked = (u.enabled_tools || []).includes(cb.value);
+      });
+    }
+
+    document.getElementById('user-modal').classList.add('open');
+  }
+
+  function closeModal() {
+    document.getElementById('user-modal').classList.remove('open');
+  }
+
+  function toggleActive() {
+    isActiveState = !isActiveState;
+    const toggle = document.getElementById('m-active-toggle');
+    toggle.className = 'toggle' + (isActiveState ? ' on' : '');
+    toggle.setAttribute('aria-pressed', isActiveState);
+  }
+
+  async function saveUser() {
+    const name = document.getElementById('m-name').value.trim();
+    const email = document.getElementById('m-email').value.trim();
+    const password = document.getElementById('m-password').value;
+    const role = editingType === 'team' ? document.getElementById('m-role').value : 'student';
+    const enabled_tools = editingType === 'student'
+      ? Array.from(document.querySelectorAll('#m-tools-group input:checked')).map(cb => cb.value)
+      : undefined;
+
+    if (!name || !email) {
+      showModalError('Nombre y correo son obligatorios.');
+      return;
+    }
+    if (!editingUserId && !password) {
+      showModalError('La contraseña es obligatoria para nuevos usuarios.');
+      return;
+    }
+
+    const btn = document.getElementById('btn-modal-save');
+    btn.disabled = true;
+    btn.textContent = 'Guardando...';
+
+    const token = await bgiGetToken();
+
+    let res;
+    if (editingUserId) {
+      const body = { userId: editingUserId, name, is_active: isActiveState };
+      if (editingType === 'team') body.role = role;
+      if (editingType === 'student') body.enabled_tools = enabled_tools;
+      if (password) body.password = password;
+
+      res = await fetch('/api/admin-users?action=update', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify(body)
+      });
+    } else {
+      res = await fetch('/api/admin-users?action=create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify({ email, password, name, role, enabled_tools })
+      });
+    }
+
+    const data = await res.json();
+    btn.disabled = false;
+    btn.textContent = 'Guardar';
+
+    if (!res.ok || data.error) {
+      showModalError(data.error || 'Error al guardar. Intenta de nuevo.');
+      return;
+    }
+
+    closeModal();
+    await loadUsers();
+  }
+
+  async function deleteUser(userId, name) {
+    if (!confirm(`¿Eliminar a "${name}"? Esta acción no se puede deshacer.`)) return;
+    const token = await bgiGetToken();
+    const res = await fetch('/api/admin-users?action=delete', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+      body: JSON.stringify({ userId })
+    });
+    const data = await res.json();
+    if (!res.ok) { alert(data.error || 'Error al eliminar.'); return; }
+    await loadUsers();
+  }
+
+  function togglePasswordVisibility() {
+    const input = document.getElementById('m-password');
+    const btn = document.getElementById('btn-eye');
+    if (input.type === 'password') {
+      input.type = 'text';
+      btn.textContent = '🙈';
+      btn.setAttribute('aria-label', 'Ocultar contraseña');
+    } else {
+      input.type = 'password';
+      btn.textContent = '👁️';
+      btn.setAttribute('aria-label', 'Mostrar contraseña');
+    }
+  }
+
+  function showModalError(msg) {
+    const el = document.getElementById('modal-error');
+    el.textContent = msg;
+    el.classList.add('show');
+  }
+
+  // ── Helpers ────────────────────────────────────────────
+  const TOOL_NAMES = new Map([
+    ['generador_historias', 'Generador Historias'],
+    ['historias_cta',       'Historia CTA Directo'],
+    ['historias_recurso',   'Historia Recurso de Valor']
+  ]);
+
+  function toolName(id) {
+    return TOOL_NAMES.get(id) ?? id;
+  }
+
+  function esc(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iniciar sesión — BGI Tools</title>
+  <link rel="icon" href="/favicon.png" type="image/png">
+  <meta property="og:title" content="BGI Tools — Iniciar sesión">
+  <meta property="og:description" content="Acceso exclusivo para alumnos de Business Growth Intensive.">
+  <meta property="og:image" content="https://www.bgitools.com/og-banner.jpg">
+  <meta property="og:url" content="https://www.bgitools.com/login/">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#05080f">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #05080f;
+      color: #f1f5f9;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      -webkit-font-smoothing: antialiased;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Orbes de fondo */
+    .bg-orb {
+      position: fixed; border-radius: 50%;
+      pointer-events: none; filter: blur(90px); z-index: 0;
+    }
+    .bg-orb-1 {
+      width: 700px; height: 700px;
+      background: radial-gradient(circle, rgba(19,74,110,0.5) 0%, transparent 65%);
+      top: -300px; left: -200px;
+      animation: orbFloat 14s ease-in-out infinite;
+    }
+    .bg-orb-2 {
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(91,163,204,0.1) 0%, transparent 65%);
+      bottom: -200px; right: -150px;
+      animation: orbFloat 18s ease-in-out infinite reverse;
+    }
+    @keyframes orbFloat {
+      0%, 100% { transform: translate(0,0) scale(1); }
+      50%       { transform: translate(30px,-40px) scale(1.07); }
+    }
+
+    /* Tarjeta de login */
+    .login-card {
+      width: 100%;
+      max-width: 400px;
+      background: rgba(255,255,255,0.035);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 24px;
+      padding: 44px 38px;
+      position: relative;
+      z-index: 1;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: 0 32px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04);
+      animation: cardIn 0.6s cubic-bezier(0.22,1,0.36,1) both;
+    }
+
+    /* Línea de luz superior en la tarjeta */
+    .login-card::before {
+      content: '';
+      position: absolute; top: 0; left: 10%; right: 10%; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(91,163,204,0.5), transparent);
+      border-radius: 50%;
+    }
+
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(30px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .login-logo { text-align: center; margin-bottom: 28px; }
+    .login-logo img {
+      height: 40px; width: auto;
+      filter: drop-shadow(0 4px 12px rgba(91,163,204,0.25));
+    }
+
+    .login-title {
+      text-align: center;
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 6px;
+    }
+    .login-subtitle {
+      text-align: center;
+      font-size: 14px;
+      color: rgba(255,255,255,0.38);
+      margin-bottom: 36px;
+      line-height: 1.5;
+    }
+
+    .form-group { margin-bottom: 18px; }
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.55);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      color: white;
+      font-size: 15px;
+      font-family: inherit;
+      transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+    }
+    .form-group input:focus {
+      border-color: rgba(91,163,204,0.5);
+      background: rgba(19,74,110,0.12);
+      box-shadow: 0 0 0 3px rgba(91,163,204,0.1);
+      outline: none;
+    }
+    .form-group input::placeholder { color: rgba(255,255,255,0.18); }
+
+    .btn-login {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg, #134A6E 0%, #1a6090 60%, #1e74a8 100%);
+      border: none;
+      border-radius: 12px;
+      color: white;
+      font-size: 15px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      margin-top: 8px;
+      position: relative;
+      overflow: hidden;
+      letter-spacing: 0.01em;
+    }
+    .btn-login::after {
+      content: '';
+      position: absolute; top: 0; left: -60%; width: 40%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+      transform: skewX(-20deg);
+      animation: btnShimmer 3.5s ease-in-out infinite 1.5s;
+    }
+    @keyframes btnShimmer {
+      0%        { left: -60%; }
+      40%, 100% { left: 130%; }
+    }
+    .btn-login:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(19,74,110,0.55); }
+    .btn-login:disabled { opacity: 0.55; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    :focus-visible { outline: 2px solid #5ba3cc; outline-offset: 3px; border-radius: 4px; }
+
+    .error-msg {
+      background: rgba(239,68,68,0.08);
+      border: 1px solid rgba(239,68,68,0.25);
+      color: #f87171;
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      margin-top: 16px;
+      display: none;
+      line-height: 1.5;
+    }
+    .error-msg.show { display: block; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+    }
+    .login-footer {
+      text-align: center;
+      margin-top: 28px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.2);
+    }
+    .login-footer span { color: #5ba3cc; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <div class="bg-orb bg-orb-1" aria-hidden="true"></div>
+  <div class="bg-orb bg-orb-2" aria-hidden="true"></div>
+
+  <div class="login-card">
+    <div class="login-logo">
+      <img src="/logo.png" alt="Business Growth Intensive">
+    </div>
+    <div class="login-title">Bienvenido a BGI Tools</div>
+    <div class="login-subtitle">Acceso exclusivo para alumnos y equipo BGI</div>
+
+    <form id="login-form">
+      <div class="form-group">
+        <label for="input-email">Correo electrónico</label>
+        <input type="email" id="input-email" placeholder="tu@correo.com" required autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label for="input-password">Contraseña</label>
+        <input type="password" id="input-password" placeholder="••••••••" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn-login" id="btn-login">Iniciar sesión</button>
+    </form>
+
+    <div class="error-msg" id="error-msg" role="alert" aria-live="polite"></div>
+
+    <div class="login-footer">
+      ¿Problemas para acceder? Contacta a <span>BGI</span>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="/js/supabase-client.js"></script>
+  <script>
+    const errEl = document.getElementById('error-msg');
+
+    function showError(msg) {
+      errEl.textContent = msg;
+      errEl.classList.add('show');
+    }
+
+    // Si ya hay sesión activa, redirigir
+    (async () => {
+      const { data: { session } } = await bgiSupabase.auth.getSession();
+      if (session) {
+        const { data: profile } = await bgiSupabase
+          .from('profiles').select('role').eq('id', session.user.id).single();
+        if (['super_admin', 'bgi_team'].includes(profile?.role)) {
+          window.location.href = '/admin/';
+        } else {
+          window.location.href = '/';
+        }
+      }
+    })();
+
+    // Mostrar error de cuenta inactiva si viene redirigido
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('error') === 'inactive') {
+      showError('Tu cuenta está desactivada. Contacta a BGI para reactivarla.');
+    }
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('input-email').value.trim();
+      const password = document.getElementById('input-password').value;
+      const btn = document.getElementById('btn-login');
+
+      btn.disabled = true;
+      btn.textContent = 'Iniciando sesión...';
+      errEl.classList.remove('show');
+
+      const { data, error } = await bgiSupabase.auth.signInWithPassword({ email, password });
+
+      if (error) {
+        showError(
+          error.message === 'Invalid login credentials'
+            ? 'Correo o contraseña incorrectos.'
+            : 'Error al iniciar sesión. Intenta de nuevo.'
+        );
+        btn.disabled = false;
+        btn.textContent = 'Iniciar sesión';
+        return;
+      }
+
+      const { data: profile } = await bgiSupabase
+        .from('profiles')
+        .select('role, is_active')
+        .eq('id', data.user.id)
+        .single();
+
+      if (!profile?.is_active) {
+        await bgiSupabase.auth.signOut();
+        showError('Tu cuenta está desactivada. Contacta a BGI.');
+        btn.disabled = false;
+        btn.textContent = 'Iniciar sesión';
+        return;
+      }
+
+      if (['super_admin', 'bgi_team'].includes(profile?.role)) {
+        window.location.href = '/admin/';
+      } else {
+        window.location.href = '/';
+      }
+    });
+  </script>
+</body>
+</html>

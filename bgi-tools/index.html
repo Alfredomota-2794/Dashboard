@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BGI Tools — Herramientas para alumnos de BGI</title>
+  <meta name="description" content="Herramientas digitales exclusivas para alumnos de Business Growth Intensive.">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="icon" href="/favicon.png" type="image/png">
+  <meta property="og:title" content="BGI Tools — Herramientas para alumnos de BGI">
+  <meta property="og:description" content="Aplicaciones con IA diseñadas exclusivamente para alumnos de Business Growth Intensive.">
+  <meta property="og:image" content="https://www.bgitools.com/og-banner.jpg">
+  <meta property="og:url" content="https://www.bgitools.com">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#05080f">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+</head>
+<body>
+  <!-- Orbes de fondo animados -->
+  <div class="bg-orb bg-orb-1" aria-hidden="true"></div>
+  <div class="bg-orb bg-orb-2" aria-hidden="true"></div>
+  <div class="bg-orb bg-orb-3" aria-hidden="true"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="/js/supabase-client.js"></script>
+  <script src="/js/auth.js"></script>
+  <script>
+    document.body.style.visibility = 'hidden';
+    (async () => {
+      const auth = await bgiRequireAuth(['student', 'super_admin', 'bgi_team']);
+      if (!auth) return;
+      document.body.style.visibility = 'visible';
+
+      const nameEl = document.getElementById('topbar-user');
+      if (nameEl) nameEl.textContent = auth.profile.name || auth.profile.email;
+
+      // Mostrar botón de panel solo para admin/equipo
+      if (['super_admin', 'bgi_team'].includes(auth.profile.role)) {
+        document.getElementById('btn-admin').style.display = 'inline-flex';
+      }
+    })();
+  </script>
+
+  <!-- Topbar -->
+  <nav class="topbar">
+    <div class="topbar-inner">
+      <a href="/" class="bgi-logo">
+        <img src="/logo.png" alt="Business Growth Intensive" style="height:34px; width:auto;">
+      </a>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span id="topbar-user" style="font-size:13px; color:rgba(255,255,255,0.4);"></span>
+        <a id="btn-admin" href="/admin/" style="display:none;align-items:center;gap:6px;background:rgba(19,74,110,0.25);border:1px solid rgba(91,163,204,0.35);color:#5ba3cc;padding:6px 14px;border-radius:6px;font-size:12px;font-weight:700;text-decoration:none;transition:all 0.2s;" onmouseover="this.style.background='rgba(19,74,110,0.45)'" onmouseout="this.style.background='rgba(19,74,110,0.25)'">⚙️ Panel de Control</a>
+        <button onclick="bgiSignOut()" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.4);padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;">Salir</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hub-hero">
+    <div class="hub-hero-badge">
+      ✦ Business Growth Intensive
+    </div>
+    <h1 class="hub-title">
+      Tus herramientas<br><span>digitales</span>
+    </h1>
+    <p class="hub-subtitle">
+      Aplicaciones diseñadas específicamente para que apliques la metodología BGI más rápido y con mejores resultados.
+    </p>
+  </section>
+
+  <!-- Grid de herramientas -->
+  <section class="hub-tools">
+    <p class="hub-section-label">Herramientas disponibles</p>
+    <div class="tools-grid">
+
+      <!-- ✅ Herramienta 1: Generador de Historias -->
+      <a href="/generador-historias/" class="tool-card active" style="text-decoration:none;">
+        <div class="tool-icon">📱</div>
+        <div>
+          <div class="tool-name">Generador de Historias de Instagram</div>
+          <div class="tool-desc">
+            Crea historias de CTA Directo y Recurso de Valor personalizadas con IA para validar tu academia digital.
+          </div>
+        </div>
+        <div class="tool-footer">
+          <span class="tool-tag tag-active">Disponible</span>
+          <span class="tool-cta">Abrir herramienta →</span>
+        </div>
+      </a>
+
+      <!-- 🔜 Herramienta 2: NTPVS -->
+      <div class="tool-card soon">
+        <div class="tool-icon">🎯</div>
+        <div>
+          <div class="tool-name">Creador de NTPVS</div>
+          <div class="tool-desc">Define tu Nicho, Transformación, Precio, Vehículo y Sistema para lograr tu product market-fit con IA.</div>
+        </div>
+        <div class="tool-footer">
+          <span class="tool-tag tag-soon">Próximamente</span>
+        </div>
+      </div>
+
+      <!-- 🔜 Herramienta 3: Presentación Webinar -->
+      <div class="tool-card soon">
+        <div class="tool-icon">🖥️</div>
+        <div>
+          <div class="tool-name">Creador de Presentación para Webinar</div>
+          <div class="tool-desc">Crea tu presentación slide por slide con la metodología de Smart Webinars.</div>
+        </div>
+        <div class="tool-footer">
+          <span class="tool-tag tag-soon">Próximamente</span>
+        </div>
+      </div>
+
+      <!-- 🔜 Herramienta 4: Ecosistema Digital -->
+      <div class="tool-card soon">
+        <div class="tool-icon">🏗️</div>
+        <div>
+          <div class="tool-name">Construye tu Ecosistema Digital</div>
+          <div class="tool-desc">Genera ideas para tus productos low ticket, medium ticket y high ticket para escalar tu negocio digital.</div>
+        </div>
+        <div class="tool-footer">
+          <span class="tool-tag tag-soon">Próximamente</span>
+        </div>
+      </div>
+
+      <!-- 🔜 Herramienta 5 -->
+      <div class="tool-card soon">
+        <div class="tool-icon">🧲</div>
+        <div class="tool-footer" style="border-top:none; padding-top:0;">
+          <span class="tool-tag tag-soon">Próximamente</span>
+        </div>
+      </div>
+
+      <!-- 🔜 Herramienta 6 -->
+      <div class="tool-card soon">
+        <div class="tool-icon">📋</div>
+        <div class="tool-footer" style="border-top:none; padding-top:0;">
+          <span class="tool-tag tag-soon">Próximamente</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <footer class="hub-footer">
+    Hecho con ❤️ para alumnos de <span>Business Growth Intensive</span>
+  </footer>
+
+</body>
+</html>
